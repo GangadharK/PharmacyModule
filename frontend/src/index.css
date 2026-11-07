@@ -1,0 +1,139 @@
+/*
+ * Theme tokens. Values mirror context/ui-context.md section 3.
+ *
+ * Channels are written as bare triplets (e.g. "174 76% 36%") rather than
+ * "hsl(174 76% 36%)" so Tailwind can compose opacity modifiers onto them -
+ * bg-primary/10 needs to interpolate the alpha channel, which it cannot do
+ * against a complete colour function.
+ *
+ * This file is the ONLY place a raw colour value may appear. A hex or hsl()
+ * literal in a .tsx is a violation of AGENTS.md rule 10.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Teal primary. A pharmacy reads clinical; SCMS's near-black primary reads
+       as an admin console. See ui-context.md section 1. */
+    --primary: 174 76% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm neutral surface. Slightly warm grey rather than the usual cold
+       slate, so the page does not read as a clinical chart. */
+    --background: 40 30% 98%;
+    --foreground: 200 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 15% 15%;
+
+    --secondary: 40 25% 94%;
+    --secondary-foreground: 200 20% 25%;
+
+    --muted: 40 20% 95%;
+    --muted-foreground: 200 10% 45%;
+
+    --accent: 174 40% 94%;
+    --accent-foreground: 174 76% 26%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 60% 34%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 40 15% 88%;
+    --input: 40 15% 85%;
+    --ring: 174 76% 36%;
+
+    --sidebar: 200 18% 14%;
+    --sidebar-foreground: 40 20% 92%;
+    --sidebar-accent: 200 16% 20%;
+    --sidebar-border: 200 15% 22%;
+
+    --radius: 0.5rem;
+  }
+
+  /*
+   * Declared so a component can be previewed in dark with a single class on
+   * <html>. Nothing in v1 sets it. See the note in tailwind.config.js.
+   */
+  .dark {
+    --primary: 174 60% 45%;
+    --primary-foreground: 200 20% 10%;
+
+    --background: 200 18% 10%;
+    --foreground: 40 20% 95%;
+
+    --card: 200 16% 13%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 200 16% 13%;
+    --popover-foreground: 40 20% 95%;
+
+    --secondary: 200 15% 18%;
+    --secondary-foreground: 40 20% 92%;
+
+    --muted: 200 15% 18%;
+    --muted-foreground: 200 10% 62%;
+
+    --accent: 174 30% 20%;
+    --accent-foreground: 174 60% 80%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 50% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 52%;
+    --warning-foreground: 200 20% 10%;
+
+    --border: 200 14% 22%;
+    --input: 200 14% 24%;
+    --ring: 174 60% 45%;
+
+    --sidebar: 200 20% 8%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-accent: 200 16% 18%;
+    --sidebar-border: 200 14% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /*
+   * Visible focus ring on every interactive element. Removing this is the
+   * fastest way to make a keyboard-only user unable to operate a pharmacy
+   * system, and it is invisible to everyone reviewing a screenshot.
+   */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /*
+   * The scroll container is <main> only, so the sidebar and header stay fixed.
+   * See context/specs/01-infrastructure/01c-frontend-shell.md.
+   */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}

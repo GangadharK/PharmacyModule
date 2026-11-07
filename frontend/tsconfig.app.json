@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "types": ["vite/client", "node"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /*
+     * No baseUrl: deprecated in TypeScript 6 and removed in 7. paths entries are
+     * resolved relative to this tsconfig, so the alias needs no base.
+     */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /*
+     * strict is NOT in the Vite scaffold's defaults. It is added here because
+     * "no any" is a stated project rule (AGENTS.md rule 9) and without strict,
+     * implicit any is silently allowed - the compiler will not catch a value
+     * whose type was never declared. noUncheckedIndexedAccess is included
+     * because array and record indexing is the most common source of an
+     * undefined sneaking into a render.
+     */
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.8</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>com.potlatech</groupId>
+    <artifactId>pharmacy</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>pharmacy</name>
+    <description>Pharmacy Management System - standalone, client-facing</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <springdoc.version>3.1.0</springdoc.version>
+        <jjwt.version>0.12.6</jjwt.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--
+                jjwt splits its API from its implementations. Without this block
+                jjwt-impl and jjwt-jackson can resolve to versions that do not match
+                jjwt-api, which fails at runtime with NoSuchMethodError rather than
+                at build time. Pinning all three to one property removes the risk.
+            -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- ============ Web / API ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!--
+            REQUIRED and easy to lose. The Spring Initializr POM omits it, so
+            @Valid on a @RequestBody silently does nothing and Bean Validation
+            annotations are never evaluated. This is the exact bug the reference
+            project in ../SCMS has: it declares validation and then omits @Valid
+            from every controller, so its one @NotBlank never fires.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ============ Persistence ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!--
+            One JDBC driver, one engine. PostgreSQL 16 is the only database
+            target - decision 22 in context/progress-tracker.md. A MySQL driver
+            and a parallel migration tree were removed along with the parity
+            test that kept them in step; see that decision for what that cost.
+
+            No dialect is configured. Hibernate derives it from the live
+            connection, so a changed DB_URL is the only thing that should ever
+            be needed to point this at a different PostgreSQL.
+        -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            Flyway owns the schema. ddl-auto is set to validate in application.properties
+            so Hibernate fails at boot if the migration and the entity disagree,
+            instead of silently mutating the database. The reference project uses
+            hand-run SQL plus ddl-auto: update, which hides drift entirely.
+
+            Two independent things are needed here, and confusing them produces a
+            silent failure:
+
+            1. spring-boot-flyway — the Spring Boot 4 auto-configuration module.
+               Boot 4 moved auto-configuration out of spring-boot-autoconfigure
+               and into one module per technology (spring-boot-jdbc,
+               spring-boot-hibernate, ...), the same way flyway split its own
+               database support out of flyway-core in v10. flyway-core alone puts
+               Flyway on the classpath but registers nothing: the app boots
+               happily, no auto-configuration class is even evaluated, no
+               migration runs, and no schema is ever created. The absence of any
+               Flyway log output is the only symptom.
+
+            2. flyway-database-postgresql — since Flyway 10 the database support
+               lives outside flyway-core, and omitting it fails at boot with a
+               message that does not obviously mean "add the dependency".
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- ============ Security ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+            Self-issued JWT. The reference project uses Keycloak, which needs a
+            realm JSON file and six Docker containers to run; the pharmacy must
+            start standalone per FDD 1. First used in unit 02.
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ============ API documentation ============ -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!--
+            NOTE: the OpenFeign client for the HMS integration is NOT declared
+            here. Unit 01 lays down the HmsClient interface and MockHmsClient,
+            which need no HTTP client. spring-cloud-starter-openfeign and the
+            Spring Cloud release-train BOM are added in unit 10, when the real
+            client is written - per ai-workflow-rules.md 1, dependencies are
+            installed just-in-time, and no v1 unit calls HmsClient at all.
+            See context/specs/10-ocr-purchase.md (10d-hms-stub.md).
+        -->
+
+        <!-- ============ Observability ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ============ Boilerplate ============ -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ============ Test ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

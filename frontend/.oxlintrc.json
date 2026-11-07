@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    /*
+     * only-export-components is warn, not error, and is expected to fire on the
+     * shadcn primitives: button.tsx and badge.tsx export their `cva` variants
+     * object alongside the component. That is the upstream shadcn idiom - the
+     * variants export is how a <Link> or <a> gets button styling - and splitting
+     * it into its own file to satisfy a lint rule would diverge from the
+     * primitive we are meant to reuse verbatim.
+     *
+     * The only cost is that Fast Refresh does a full reload instead of a hot
+     * update when one of those two files changes. That is a DX nit, not a
+     * correctness problem, and not worth restructuring a primitive for.
+     */
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "typescript/no-explicit-any": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/components/ui/**"],
+      "rules": {
+        "react/only-export-components": "off"
+      }
+    },
+    {
+      /*
+       * No stray console output in application code - a logger or the toast
+       * system is the way to surface something to a user or a log. The verify
+       * scripts under scripts/ are exempt: they are command-line tools whose
+       * entire purpose is to print pass/fail lines, and silencing them would
+       * defeat the reason they exist.
+       */
+      "files": ["src/**"],
+      "rules": {
+        "no-console": "error"
+      }
+    }
+  ]
+}
